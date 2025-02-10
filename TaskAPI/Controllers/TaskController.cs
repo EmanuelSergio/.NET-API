@@ -59,12 +59,9 @@ namespace TaskApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Task>> updateTask(int id, Task task){
+        public async Task<ActionResult> updateTask(int id, Task task){
             
-            if(id != task.Id){
-                return BadRequest();
-            }
-
+          
             var exisingTask = await _context.Tasks.FindAsync(id);
             if(exisingTask == null){
                 return NotFound();
@@ -78,10 +75,12 @@ namespace TaskApi.Controllers
                 exisingTask.CompletedAt = DateTime.UtcNow;
             }
 
+            _context.Entry(exisingTask).State = EntityState.Modified;
+
             try{
                 await _context.SaveChangesAsync();
             }catch(DbUpdateConcurrencyException){
-                if(_context.Tasks.Find(id) == null){
+                if(_context.Tasks.FindAsync(id) == null){
                     return NotFound();
                 }else{
                     throw;
